@@ -2,10 +2,9 @@ package app
 
 import (
 	"fmt"
-	"os"
+	"os/exec"
 
 	"charm.land/bubbles/v2/table"
-	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 )
 
@@ -22,9 +21,16 @@ func NewModel() Model {
 	}
 
 	rows := []table.Row{
-		{"8080", "86527", "localhost:8080", "python"},
-		{"3000", "83618", "localhost:3000", "node"},
+		{"1", "Tokyo", "Japan", "37,274,000"},
+		{"2", "Delhi", "India", "32,065,760"},
 	}
+
+	cmdStruct := exec.Command("echo", "hello")
+	out, err := cmdStruct.Output()
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(string(out))
 
 	t := table.New(
 		table.WithColumns(columns),
@@ -46,11 +52,5 @@ func NewModel() Model {
 		Bold(false)
 	t.SetStyles(s)
 
-	m := Model{t}
-	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
-	}
-
-	return Model{t}
+	return Model{table: t}
 }
