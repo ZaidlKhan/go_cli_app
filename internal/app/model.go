@@ -3,7 +3,7 @@ package app
 import (
 	"os/exec"
 
-	"main/internal/filesystems"
+	"main/internal/parser"
 
 	"charm.land/bubbles/v2/table"
 	"charm.land/lipgloss/v2"
@@ -28,7 +28,7 @@ func NewModel() Model {
 
 	cmdStruct := exec.Command("lsof", "-iTCP", "-sTCP:LISTEN", "-n", "-P", "-Fpcn")
 	out, _ := cmdStruct.CombinedOutput()
-	filesystems.ParseOutput(string(out))
+	parser.ParseOutput(string(out))
 
 	t := table.New(
 		table.WithColumns(columns),
