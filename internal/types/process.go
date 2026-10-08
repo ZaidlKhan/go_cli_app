@@ -1,8 +1,7 @@
 package types
 
 type Process struct {
-	Port string
-	PID  string
-	URL  string
-	App  string
+	PID   string
+	App   string
+	Ports []string
 }

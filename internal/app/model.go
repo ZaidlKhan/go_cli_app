@@ -1,8 +1,9 @@
 package app
 
 import (
-	"fmt"
 	"os/exec"
+
+	"main/internal/filesystems"
 
 	"charm.land/bubbles/v2/table"
 	"charm.land/lipgloss/v2"
@@ -25,12 +26,9 @@ func NewModel() Model {
 		{"2", "Delhi", "India", "32,065,760"},
 	}
 
-	cmdStruct := exec.Command("echo", "hello")
-	out, err := cmdStruct.Output()
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(string(out))
+	cmdStruct := exec.Command("lsof", "-iTCP", "-sTCP:LISTEN", "-n", "-P", "-Fpcn")
+	out, _ := cmdStruct.CombinedOutput()
+	filesystems.ParseOutput(string(out))
 
 	t := table.New(
 		table.WithColumns(columns),
