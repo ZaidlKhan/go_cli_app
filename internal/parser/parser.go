@@ -90,14 +90,11 @@ func ParseOutput(input string) map[int]types.Process {
 		if !evalProcess(&proc, cmdArgs) {
 			delete(processes, pid)
 		} else {
+			if proc.GitBranch == "" {
+				proc.GitBranch = "N/A"
+			}
 			processes[pid] = proc
 		}
-	}
-
-	fmt.Printf("\n--- Discovered Dev Servers (%d found) ---\n", len(processes))
-	for pid, proc := range processes {
-		fmt.Printf("PID: %d | Name: %s | Address: %s | Port: %d | URL: %s | Branch: %s\n",
-			pid, proc.ProcessName, proc.Address, proc.Port, proc.URL, proc.GitBranch)
 	}
 
 	return processes

@@ -2,6 +2,7 @@ package app
 
 import (
 	"os/exec"
+	"strconv"
 
 	"main/internal/parser"
 
@@ -16,26 +17,37 @@ type Model struct {
 func NewModel() Model {
 	columns := []table.Column{
 		{Title: "Port", Width: 6},
-		{Title: "PID", Width: 5},
-		{Title: "URL", Width: 15},
-		{Title: "App", Width: 10},
-	}
-
-	rows := []table.Row{
-		{"1", "Tokyo", "Japan", "37,274,000"},
-		{"2", "Delhi", "India", "32,065,760"},
+		{Title: "App", Width: 14},
+		{Title: "PID", Width: 6},
+		{Title: "URL", Width: 24},
+		{Title: "Branch", Width: 14},
 	}
 
 	cmdStruct := exec.Command("lsof", "-iTCP", "-sTCP:LISTEN", "-n", "-P", "-Fpcn")
 	out, _ := cmdStruct.CombinedOutput()
-	parser.ParseOutput(string(out))
+	processes := parser.ParseOutput(string(out))
+
+	var rows []table.Row
+	for _, proc := range processes {
+		rows = append(rows, table.Row{
+			strconv.Itoa(int(proc.Port)),
+			proc.ProcessName,
+			strconv.Itoa(proc.PID),
+			proc.URL,
+			proc.GitBranch,
+		})
+	}
+
+	if len(rows) == 0 {
+		rows = append(rows, table.Row{"-", "No dev servers found", "-", "-", "-"})
+	}
 
 	t := table.New(
 		table.WithColumns(columns),
 		table.WithRows(rows),
 		table.WithFocused(true),
-		table.WithHeight(4),
-		table.WithWidth(43),
+		table.WithHeight(len(rows)+1),
+		table.WithWidth(68),
 	)
 
 	s := table.DefaultStyles()
