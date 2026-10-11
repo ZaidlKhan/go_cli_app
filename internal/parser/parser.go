@@ -219,9 +219,13 @@ func ResolveURL(proc *types.Process) {
 
 	host := "localhost"
 	if strings.HasPrefix(proc.Address, "127.0.0.1") || strings.HasPrefix(proc.Address, "[::1]") {
-		parts := strings.Split(proc.Address, ":")
-		if len(parts) > 0 && parts[0] != "" {
-			host = parts[0]
+		if strings.HasPrefix(proc.Address, "[::1]") {
+			host = "[::1]"
+		} else {
+			parts := strings.Split(proc.Address, ":")
+			if len(parts) > 0 && parts[0] != "" {
+				host = parts[0]
+			}
 		}
 	}
 
