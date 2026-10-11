@@ -26,3 +26,7 @@ jobs:
 
     - name: Build Project
       run: go build -v ./...
+      
+    - name: Run Unit Tests
+      working-directory: ./tst 
+      run: go test -v ./...
