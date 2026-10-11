@@ -87,7 +87,7 @@ func ParseOutput(input string) map[int]types.Process {
 	for pid, proc := range processes {
 		cmdArgs := GetProcessArgs(pid)
 
-		if !evalProcess(&proc, cmdArgs) {
+		if !EvalProcess(&proc, cmdArgs) {
 			delete(processes, pid)
 		} else {
 			if proc.GitBranch == "" {
@@ -100,13 +100,13 @@ func ParseOutput(input string) map[int]types.Process {
 	return processes
 }
 
-func evalProcess(proc *types.Process, cmdArgs string) bool {
-	if !inspectPath(cmdArgs) {
+func EvalProcess(proc *types.Process, cmdArgs string) bool {
+	if !InspectPath(cmdArgs) {
 		return false
 	}
 
-	resolveGitInfo(proc, cmdArgs)
-	resolveURL(proc)
+	ResolveGitInfo(proc, cmdArgs)
+	ResolveURL(proc)
 
 	hasRuntime := false
 	lowerArgs := strings.ToLower(cmdArgs)
@@ -141,7 +141,7 @@ func evalProcess(proc *types.Process, cmdArgs string) bool {
 	return score >= 40
 }
 
-func inspectPath(cmdArgs string) bool {
+func InspectPath(cmdArgs string) bool {
 	path := strings.TrimSpace(cmdArgs)
 
 	for _, prefix := range types.InvalidPrefixes {
@@ -153,7 +153,7 @@ func inspectPath(cmdArgs string) bool {
 	return true
 }
 
-func resolveGitInfo(proc *types.Process, cmdArgs string) {
+func ResolveGitInfo(proc *types.Process, cmdArgs string) {
 	var repoRoot string
 
 	if proc.PID != 0 {
@@ -212,7 +212,7 @@ func resolveGitInfo(proc *types.Process, cmdArgs string) {
 	}
 }
 
-func resolveURL(proc *types.Process) {
+func ResolveURL(proc *types.Process) {
 	if proc.Port == 0 {
 		return
 	}

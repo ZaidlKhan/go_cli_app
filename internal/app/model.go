@@ -47,7 +47,7 @@ func NewModel() Model {
 		table.WithRows(rows),
 		table.WithFocused(true),
 		table.WithHeight(len(rows)+1),
-		table.WithWidth(68),
+		table.WithWidth(120),
 	)
 
 	s := table.DefaultStyles()
