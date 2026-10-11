@@ -11,7 +11,8 @@ import (
 )
 
 type Model struct {
-	table table.Model
+	table   table.Model
+	isEmpty bool
 }
 
 func NewModel() Model {
@@ -38,16 +39,18 @@ func NewModel() Model {
 		})
 	}
 
-	if len(rows) == 0 {
-		rows = append(rows, table.Row{"-", "No dev servers found", "-", "-", "-"})
+	isEmpty := len(rows) == 0
+
+	if isEmpty {
+		rows = []table.Row{{"", "", "", "", ""}}
 	}
 
 	t := table.New(
 		table.WithColumns(columns),
 		table.WithRows(rows),
-		table.WithFocused(true),
+		table.WithFocused(!isEmpty),
 		table.WithHeight(len(rows)+1),
-		table.WithWidth(120),
+		table.WithWidth(68),
 	)
 
 	s := table.DefaultStyles()
@@ -62,5 +65,8 @@ func NewModel() Model {
 		Bold(false)
 	t.SetStyles(s)
 
-	return Model{table: t}
+	return Model{
+		table:   t,
+		isEmpty: isEmpty,
+	}
 }
