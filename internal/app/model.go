@@ -36,6 +36,7 @@ const (
 	StateConfirmKill
 	StateKillSuccess
 	StateKillError
+	StateOpenError
 )
 
 type Model struct {

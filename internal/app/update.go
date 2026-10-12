@@ -72,7 +72,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch m.state {
-		case StateKillSuccess, StateKillError:
+		case StateKillSuccess, StateKillError, StateOpenError:
 			m.state = StateNormal
 			return m, nil
 
@@ -96,6 +96,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.targetPID = pid
 						m.state = StateConfirmKill
 					}
+				}
+				return m, nil
+
+			case "o":
+				if m.isEmpty {
+					return m, nil
+				}
+				selectedRow := m.table.SelectedRow()
+				if err := process.OpenURL(selectedRow[3]); err != nil {
+					m.errMessage = err.Error()
+					m.state = StateOpenError
 				}
 				return m, nil
 			}

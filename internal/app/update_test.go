@@ -120,3 +120,25 @@ func TestKillPromptAndSuccessMessageUseSameSizeBox(t *testing.T) {
 		t.Errorf("success box height = %d, want prompt box height %d", got, want)
 	}
 }
+
+func TestOpenURLFailureIsShownToUser(t *testing.T) {
+	m := Model{table: table.New()}
+	m.table.SetColumns([]table.Column{
+		{Title: "Port", Width: 6},
+		{Title: "App", Width: 14},
+		{Title: "PID", Width: 6},
+		{Title: "URL", Width: 24},
+		{Title: "Branch", Width: 10},
+	})
+	m.setTableRows([]table.Row{{"3000", "dev-server", "1234", "ftp://localhost:3000", "main"}})
+
+	updated, _ := m.Update(tea.KeyPressMsg(tea.Key{Text: "o", Code: 'o'}))
+	m = updated.(Model)
+
+	if m.state != StateOpenError {
+		t.Fatalf("state after unsupported URL = %v, want %v", m.state, StateOpenError)
+	}
+	if !strings.Contains(m.View().Content, "Failed to open URL") {
+		t.Fatal("open URL error should be shown in the app view")
+	}
+}

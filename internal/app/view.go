@@ -38,13 +38,13 @@ func (m Model) View() tea.View {
 	switch m.state {
 	case StateConfirmKill:
 		helpText = helpStyle.Render("y / ↵ : confirm  •  n: cancel")
-	case StateKillSuccess, StateKillError:
+	case StateKillSuccess, StateKillError, StateOpenError:
 		helpText = helpStyle.Render("press any key to continue")
 	case StateNormal:
 		if m.isEmpty {
 			helpText = helpStyle.Render("q: quit")
 		} else {
-			helpText = helpStyle.Render("↑/↓: select  •  k: kill  •  q: quit")
+			helpText = helpStyle.Render("k: kill  •  o: open  •  q: quit")
 		}
 	}
 
@@ -62,6 +62,14 @@ func (m Model) View() tea.View {
 			Align(lipgloss.Center, lipgloss.Center).
 			Foreground(lipgloss.Color("204")).
 			Render(fmt.Sprintf("❌ Failed to kill PID %d: %s", m.targetPID, m.errMessage))
+
+		return appView(actionBox(msg, "204") + "\n  " + helpText + "\n")
+	}
+
+	if m.state == StateOpenError {
+		msg := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("204")).
+			Render(fmt.Sprintf("❌ Failed to open URL: %s", m.errMessage))
 
 		return appView(actionBox(msg, "204") + "\n  " + helpText + "\n")
 	}
