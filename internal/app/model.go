@@ -2,6 +2,7 @@ package app
 
 import (
 	"os/exec"
+	"sort"
 	"strconv"
 
 	"main/internal/parser"
@@ -26,7 +27,22 @@ func loadProcessRows() []table.Row {
 		})
 	}
 
+	sortProcessRows(rows)
 	return rows
+}
+
+func sortProcessRows(rows []table.Row) {
+	sort.Slice(rows, func(i, j int) bool {
+		portI, _ := strconv.Atoi(rows[i][0])
+		portJ, _ := strconv.Atoi(rows[j][0])
+		if portI != portJ {
+			return portI < portJ
+		}
+		if rows[i][1] != rows[j][1] {
+			return rows[i][1] < rows[j][1]
+		}
+		return rows[i][2] < rows[j][2]
+	})
 }
 
 type State int
@@ -78,13 +94,14 @@ func NewModel() Model {
 
 	s := table.DefaultStyles()
 	s.Header = s.Header.
+		Foreground(lipgloss.Color("#C4B5FD")).
 		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("240")).
+		BorderForeground(lipgloss.Color("#8B5CF6")).
 		BorderBottom(true).
 		Bold(false)
 	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("#164E4A")).
+		Foreground(lipgloss.Color("#F3E8FF")).
+		Background(lipgloss.Color("#4C1D95")).
 		Bold(false)
 	m.table.SetStyles(s)
 	m.reloadTable()

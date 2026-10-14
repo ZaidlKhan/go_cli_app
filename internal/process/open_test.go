@@ -5,6 +5,9 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBrowserURLPreservesHTTPWhenEndpointSupportsTLS(t *testing.T) {
@@ -13,12 +16,8 @@ func TestBrowserURLPreservesHTTPWhenEndpointSupportsTLS(t *testing.T) {
 
 	inputURL := strings.Replace(server.URL, "https://", "http://", 1)
 	openedURL, err := browserURL(inputURL)
-	if err != nil {
-		t.Fatalf("browserURL returned error: %v", err)
-	}
-	if openedURL.Scheme != "http" {
-		t.Errorf("scheme = %q, want http", openedURL.Scheme)
-	}
+	require.NoError(t, err, "browserURL returned error")
+	assert.Equal(t, "http", openedURL.Scheme)
 }
 
 func TestBrowserURLKeepsHTTPWhenEndpointDoesNotSupportTLS(t *testing.T) {
@@ -26,12 +25,8 @@ func TestBrowserURLKeepsHTTPWhenEndpointDoesNotSupportTLS(t *testing.T) {
 	defer server.Close()
 
 	openedURL, err := browserURL(server.URL)
-	if err != nil {
-		t.Fatalf("browserURL returned error: %v", err)
-	}
-	if openedURL.Scheme != "http" {
-		t.Errorf("scheme = %q, want http", openedURL.Scheme)
-	}
+	require.NoError(t, err, "browserURL returned error")
+	assert.Equal(t, "http", openedURL.Scheme)
 }
 
 func TestBrowserURLUsesIPv4LoopbackForLocalhost(t *testing.T) {
@@ -40,12 +35,8 @@ func TestBrowserURLUsesIPv4LoopbackForLocalhost(t *testing.T) {
 
 	localURL := strings.Replace(server.URL, "127.0.0.1", "localhost", 1)
 	openedURL, err := browserURL(localURL)
-	if err != nil {
-		t.Fatalf("browserURL returned error: %v", err)
-	}
-	if got, want := openedURL.Hostname(), "127.0.0.1"; got != want {
-		t.Errorf("hostname = %q, want %q", got, want)
-	}
+	require.NoError(t, err, "browserURL returned error")
+	assert.Equal(t, "127.0.0.1", openedURL.Hostname())
 }
 
 func TestBrowserURLAddsHTTPWhenSchemeIsMissing(t *testing.T) {
@@ -54,13 +45,7 @@ func TestBrowserURLAddsHTTPWhenSchemeIsMissing(t *testing.T) {
 
 	rawURL := strings.TrimPrefix(server.URL, "http://")
 	openedURL, err := browserURL(rawURL)
-	if err != nil {
-		t.Fatalf("browserURL returned error: %v", err)
-	}
-	if got, want := openedURL.Scheme, "http"; got != want {
-		t.Errorf("scheme = %q, want %q", got, want)
-	}
-	if got, want := openedURL.Host, strings.TrimPrefix(server.URL, "http://"); got != want {
-		t.Errorf("host = %q, want %q", got, want)
-	}
+	require.NoError(t, err, "browserURL returned error")
+	assert.Equal(t, "http", openedURL.Scheme)
+	assert.Equal(t, strings.TrimPrefix(server.URL, "http://"), openedURL.Host)
 }

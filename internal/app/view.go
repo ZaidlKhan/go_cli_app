@@ -9,7 +9,7 @@ import (
 
 var baseStyle = lipgloss.NewStyle().
 	BorderStyle(lipgloss.NormalBorder()).
-	BorderForeground(lipgloss.Color("240"))
+	BorderForeground(lipgloss.Color("#6B4FA1"))
 
 func actionBox(content string, borderColor string) string {
 	return lipgloss.NewStyle().

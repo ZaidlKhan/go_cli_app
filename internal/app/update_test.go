@@ -7,6 +7,8 @@ import (
 	"charm.land/bubbles/v2/table"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTableNavigationKeysMoveSelection(t *testing.T) {
@@ -17,9 +19,7 @@ func TestTableNavigationKeysMoveSelection(t *testing.T) {
 		{"third"},
 	})
 
-	if !m.table.Focused() {
-		t.Fatal("table should be focused so it can receive navigation keys")
-	}
+	require.True(t, m.table.Focused(), "table should be focused so it can receive navigation keys")
 
 	keys := []rune{tea.KeyDown, tea.KeyDown, tea.KeyUp}
 	wantCursors := []int{1, 2, 1}
@@ -27,9 +27,7 @@ func TestTableNavigationKeysMoveSelection(t *testing.T) {
 		msg := tea.KeyPressMsg(tea.Key{Code: key})
 		updated, _ := m.Update(msg)
 		m = updated.(Model)
-		if got := m.table.Cursor(); got != wantCursors[i] {
-			t.Fatalf("cursor after key %q = %d, want %d", msg.String(), got, wantCursors[i])
-		}
+		assert.Equal(t, wantCursors[i], m.table.Cursor(), "cursor after key %q", msg.String())
 	}
 }
 
@@ -41,44 +39,31 @@ func TestClearNoticeRestoresTableView(t *testing.T) {
 	updated, _ := m.Update(clearNoticeMsg{})
 	m = updated.(Model)
 
-	if m.state != StateNormal {
-		t.Fatalf("state after clearing success notice = %v, want %v", m.state, StateNormal)
-	}
+	assert.Equal(t, StateNormal, m.state, "state after clearing success notice")
 
 	view := m.View()
-	if !view.AltScreen {
-		t.Fatal("app views should use the alternate screen to prevent stale content after redraws")
-	}
-	if !strings.Contains(view.Content, "Port") || !strings.Contains(view.Content, "dev-server") {
-		t.Fatalf("table view not restored after notice: %q", view.Content)
-	}
+	assert.True(t, view.AltScreen, "app views should use the alternate screen to prevent stale content after redraws")
+	assert.Contains(t, view.Content, "Port")
+	assert.Contains(t, view.Content, "dev-server")
 }
 
 func TestReloadWithOneRemainingProcessShowsItsRow(t *testing.T) {
 	m := NewModel()
 	m.setTableRows([]table.Row{{"3001", "remaining-app", "1235", "http://localhost:3001", "main"}})
 
-	if got, want := m.table.Height(), 1; got != want {
-		t.Fatalf("table viewport height = %d, want %d", got, want)
-	}
-	if !strings.Contains(m.table.View(), "remaining-app") {
-		t.Fatal("table should render the remaining process when only one row is left")
-	}
+	assert.Equal(t, 1, m.table.Height(), "table viewport height")
+	assert.Contains(t, m.table.View(), "remaining-app", "table should render the remaining process when only one row is left")
 }
 
 func TestInitialTableHeightMatchesRows(t *testing.T) {
 	m := NewModel()
 
-	if got, want := m.table.Height(), len(m.table.Rows()); got != want {
-		t.Fatalf("initial table viewport height = %d, want %d rows", got, want)
-	}
+	assert.Equal(t, len(m.table.Rows()), m.table.Height(), "initial table viewport height matches row count")
 }
 
 func TestInitSchedulesProcessPolling(t *testing.T) {
 	m := Model{}
-	if m.Init() == nil {
-		t.Fatal("Init should schedule the first process poll")
-	}
+	assert.NotNil(t, m.Init(), "Init should schedule the first process poll")
 }
 
 func TestProcessPollUpdatesRowsAndSchedulesNextPoll(t *testing.T) {
@@ -97,12 +82,24 @@ func TestProcessPollUpdatesRowsAndSchedulesNextPoll(t *testing.T) {
 	}})
 	m = updated.(Model)
 
-	if got := m.table.Rows()[0][1]; got != "second-app" {
-		t.Fatalf("poll result app name = %q, want %q", got, "second-app")
+	assert.Equal(t, "second-app", m.table.Rows()[0][1], "poll result app name")
+	assert.NotNil(t, cmd, "processing poll results should schedule the next poll")
+}
+
+func TestSortProcessRowsKeepsPollingOrderStable(t *testing.T) {
+	rows := []table.Row{
+		{"9000", "third-app", "300", "http://localhost:9000", "main"},
+		{"8080", "second-app", "200", "http://localhost:8080", "main"},
+		{"3000", "first-app", "100", "http://localhost:3000", "main"},
 	}
-	if cmd == nil {
-		t.Fatal("processing poll results should schedule the next poll")
-	}
+
+	sortProcessRows(rows)
+
+	assert.Equal(t, []table.Row{
+		{"3000", "first-app", "100", "http://localhost:3000", "main"},
+		{"8080", "second-app", "200", "http://localhost:8080", "main"},
+		{"9000", "third-app", "300", "http://localhost:9000", "main"},
+	}, rows)
 }
 
 func TestKillPromptAndSuccessMessageUseSameSizeBox(t *testing.T) {
@@ -113,12 +110,8 @@ func TestKillPromptAndSuccessMessageUseSameSizeBox(t *testing.T) {
 	m.targetPID = 1234
 	successView := strings.SplitN(m.View().Content, "\n  ", 2)[0]
 
-	if got, want := lipgloss.Width(successView), lipgloss.Width(promptView); got != want {
-		t.Errorf("success box width = %d, want prompt box width %d", got, want)
-	}
-	if got, want := lipgloss.Height(successView), lipgloss.Height(promptView); got != want {
-		t.Errorf("success box height = %d, want prompt box height %d", got, want)
-	}
+	assert.Equal(t, lipgloss.Width(promptView), lipgloss.Width(successView), "success box width should match prompt box width")
+	assert.Equal(t, lipgloss.Height(promptView), lipgloss.Height(successView), "success box height should match prompt box height")
 }
 
 func TestOpenURLFailureIsShownToUser(t *testing.T) {
@@ -135,10 +128,6 @@ func TestOpenURLFailureIsShownToUser(t *testing.T) {
 	updated, _ := m.Update(tea.KeyPressMsg(tea.Key{Text: "o", Code: 'o'}))
 	m = updated.(Model)
 
-	if m.state != StateOpenError {
-		t.Fatalf("state after unsupported URL = %v, want %v", m.state, StateOpenError)
-	}
-	if !strings.Contains(m.View().Content, "Failed to open URL") {
-		t.Fatal("open URL error should be shown in the app view")
-	}
+	assert.Equal(t, StateOpenError, m.state, "state after unsupported URL")
+	assert.Contains(t, m.View().Content, "Failed to open URL", "open URL error should be shown in the app view")
 }
