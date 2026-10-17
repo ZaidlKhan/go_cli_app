@@ -117,3 +117,12 @@ func TestParseOutput(t *testing.T) {
 		assert.Equal(t, "127.0.0.1:3000", processes[1234].Address)
 	}
 }
+
+func TestResolveUsage(t *testing.T) {
+	proc := &types.Process{PID: os.Getpid()}
+
+	parser.ResolveUsage(proc)
+
+	assert.Regexp(t, `^\d+(\.\d+)?%$`, proc.CPUUsage)
+	assert.Regexp(t, `^\d+(\.\d+)? MB$`, proc.Mem)
+}

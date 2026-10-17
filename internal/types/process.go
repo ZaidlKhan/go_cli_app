@@ -7,4 +7,6 @@ type Process struct {
 	Port        uint16
 	URL         string
 	GitBranch   string
+	Mem         string
+	CPUUsage    string
 }

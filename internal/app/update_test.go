@@ -33,7 +33,7 @@ func TestTableNavigationKeysMoveSelection(t *testing.T) {
 
 func TestClearNoticeRestoresTableView(t *testing.T) {
 	m := NewModel()
-	m.setTableRows([]table.Row{{"3000", "dev-server", "1234", "http://localhost:3000", "main"}})
+	m.setTableRows([]table.Row{{"3000", "dev-server", "1234", "http://localhost:3000", "main", "0.0%", "4.6 MB"}})
 	m.state = StateKillSuccess
 
 	updated, _ := m.Update(clearNoticeMsg{})
@@ -45,11 +45,15 @@ func TestClearNoticeRestoresTableView(t *testing.T) {
 	assert.True(t, view.AltScreen, "app views should use the alternate screen to prevent stale content after redraws")
 	assert.Contains(t, view.Content, "Port")
 	assert.Contains(t, view.Content, "dev-server")
+	assert.Contains(t, view.Content, "CPU")
+	assert.Contains(t, view.Content, "Mem")
+	assert.Contains(t, view.Content, "0.0%")
+	assert.Contains(t, view.Content, "4.6 MB")
 }
 
 func TestReloadWithOneRemainingProcessShowsItsRow(t *testing.T) {
 	m := NewModel()
-	m.setTableRows([]table.Row{{"3001", "remaining-app", "1235", "http://localhost:3001", "main"}})
+	m.setTableRows([]table.Row{{"3001", "remaining-app", "1235", "http://localhost:3001", "main", "1.0%", "8.0 MB"}})
 
 	assert.Equal(t, 1, m.table.Height(), "table viewport height")
 	assert.Contains(t, m.table.View(), "remaining-app", "table should render the remaining process when only one row is left")
@@ -74,15 +78,19 @@ func TestProcessPollUpdatesRowsAndSchedulesNextPoll(t *testing.T) {
 		{Title: "PID", Width: 6},
 		{Title: "URL", Width: 24},
 		{Title: "Branch", Width: 10},
+		{Title: "CPU", Width: 6},
+		{Title: "Mem", Width: 8},
 	})
-	m.setTableRows([]table.Row{{"3000", "first-app", "1234", "http://localhost:3000", "main"}})
+	m.setTableRows([]table.Row{{"3000", "first-app", "1234", "http://localhost:3000", "main", "0.0%", "4.6 MB"}})
 
 	updated, cmd := m.Update(processRowsMsg{rows: []table.Row{
-		{"3001", "second-app", "1235", "http://localhost:3001", "main"},
+		{"3001", "second-app", "1235", "http://localhost:3001", "main", "1.0%", "8.0 MB"},
 	}})
 	m = updated.(Model)
 
 	assert.Equal(t, "second-app", m.table.Rows()[0][1], "poll result app name")
+	assert.Equal(t, "1.0%", m.table.Rows()[0][5], "poll result CPU usage")
+	assert.Equal(t, "8.0 MB", m.table.Rows()[0][6], "poll result memory usage")
 	assert.NotNil(t, cmd, "processing poll results should schedule the next poll")
 }
 
@@ -122,8 +130,10 @@ func TestOpenURLFailureIsShownToUser(t *testing.T) {
 		{Title: "PID", Width: 6},
 		{Title: "URL", Width: 24},
 		{Title: "Branch", Width: 10},
+		{Title: "CPU", Width: 6},
+		{Title: "Mem", Width: 8},
 	})
-	m.setTableRows([]table.Row{{"3000", "dev-server", "1234", "ftp://localhost:3000", "main"}})
+	m.setTableRows([]table.Row{{"3000", "dev-server", "1234", "ftp://localhost:3000", "main", "0.0%", "4.6 MB"}})
 
 	updated, _ := m.Update(tea.KeyPressMsg(tea.Key{Text: "o", Code: 'o'}))
 	m = updated.(Model)

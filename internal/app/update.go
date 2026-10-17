@@ -59,7 +59,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case processRowsMsg:
 		rows := msg.rows
 		if len(rows) == 0 {
-			rows = []table.Row{{"", "", "", "", ""}}
+			rows = []table.Row{{"", "", "", "", "", "", ""}}
 		}
 		if m.isEmpty != (len(msg.rows) == 0) || !rowsEqual(m.table.Rows(), rows) {
 			m.setTableRows(msg.rows)

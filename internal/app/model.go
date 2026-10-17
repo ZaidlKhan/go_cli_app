@@ -24,6 +24,8 @@ func loadProcessRows() []table.Row {
 			strconv.Itoa(proc.PID),
 			proc.URL,
 			proc.GitBranch,
+			proc.CPUUsage,
+			proc.Mem,
 		})
 	}
 
@@ -72,6 +74,8 @@ func (m *Model) reloadTable() {
 		{Title: "PID", Width: 6},
 		{Title: "URL", Width: 24},
 		{Title: "Branch", Width: 10},
+		{Title: "CPU", Width: 6},
+		{Title: "Mem", Width: 8},
 	}
 
 	m.table.SetColumns(columns)
@@ -81,11 +85,11 @@ func (m *Model) reloadTable() {
 func (m *Model) setTableRows(rows []table.Row) {
 	m.isEmpty = len(rows) == 0
 	if m.isEmpty {
-		rows = []table.Row{{"", "", "", "", ""}}
+		rows = []table.Row{{"", "", "", "", "", "", ""}}
 	}
 
 	m.table.SetRows(rows)
-	m.table.SetWidth(70)
+	m.table.SetWidth(90)
 	m.table.SetHeight(len(rows) + 2)
 }
 

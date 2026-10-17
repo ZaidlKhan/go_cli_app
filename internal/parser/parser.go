@@ -93,6 +93,7 @@ func ParseOutput(input string) map[int]types.Process {
 			if proc.GitBranch == "" {
 				proc.GitBranch = "N/A"
 			}
+			ResolveUsage(&proc)
 			processes[pid] = proc
 		}
 	}
@@ -234,4 +235,51 @@ func ResolveURL(proc *types.Process) {
 	} else {
 		proc.URL = fmt.Sprintf("http://%s:%d", host, proc.Port)
 	}
+}
+
+func ResolveUsage(proc *types.Process) {
+	ResolveCPUUsage(proc)
+	ResolveMemoryUsage(proc)
+}
+
+func ResolveCPUUsage(proc *types.Process) {
+	if proc == nil || proc.PID <= 0 {
+		return
+	}
+
+	cmd := exec.Command("ps", "-p", strconv.Itoa(proc.PID), "-o", "%cpu=")
+	out, err := cmd.Output()
+	if err != nil {
+		proc.CPUUsage = "N/A"
+		return
+	}
+
+	cpu, err := strconv.ParseFloat(strings.TrimSpace(string(out)), 64)
+	if err != nil {
+		proc.CPUUsage = "N/A"
+		return
+	}
+
+	proc.CPUUsage = fmt.Sprintf("%.1f%%", cpu)
+}
+
+func ResolveMemoryUsage(proc *types.Process) {
+	if proc == nil || proc.PID <= 0 {
+		return
+	}
+
+	cmd := exec.Command("ps", "-p", strconv.Itoa(proc.PID), "-o", "rss=")
+	out, err := cmd.Output()
+	if err != nil {
+		proc.Mem = "N/A"
+		return
+	}
+
+	rssKB, err := strconv.ParseFloat(strings.TrimSpace(string(out)), 64)
+	if err != nil {
+		proc.Mem = "N/A"
+		return
+	}
+
+	proc.Mem = fmt.Sprintf("%.1f MB", rssKB/1024)
 }
